@@ -5,57 +5,48 @@ const catInfo = document.querySelector(".cat-info");
 const loader = document.querySelector(".loader");
 const error = document.querySelector(".error");
 
-
-function toggleLoader(showLoader) {
-  loader.style.display = showLoader ? "block" : "none";
+function toggleElement(element, show) {
+  element.style.display = show ? "block" : "none";
 }
 
+function initializePage() {
+  toggleElement(breedSelect, false); 
+  toggleElement(loader, true); 
+  fetchBreeds()
+    .then(breeds => {
+      breeds.forEach(breed => {
+        const option = document.createElement("option");
+        option.value = breed.id;
+        option.textContent = breed.name;
+        breedSelect.appendChild(option);
+      });
+
+      toggleElement(loader, false);
+      toggleElement(breedSelect, true);
+    })
+    .catch(error => {
+      showError("Oops! Something went wrong! Try reloading the page!");
+      toggleElement(loader, false);
+    });
+}
 
 function showError(message) {
-  error.textContent = "Oops! Something went wrong! Try reloading the page!";
+  error.textContent = message;
   error.style.display = "block";
 }
-
 
 function clearError() {
   error.style.display = "none";
 }
 
-
-fetchBreeds()
-  .then(breeds => {
-
-    breeds.forEach(breed => {
-      const option = document.createElement("option");
-      option.value = breed.id;
-      option.textContent = breed.name;
-      breedSelect.appendChild(option);
-    });
-
-
-    toggleLoader(false);
-  })
-  .catch(error => {
- 
-    showError(error.message);
-
-    toggleLoader(false);
-  });
-
-
 breedSelect.addEventListener("change", () => {
-
   catInfo.innerHTML = "";
   clearError();
-
   const selectedBreedId = breedSelect.value;
-
-
-  toggleLoader(true);
+  toggleElement(loader, true);
 
   fetchCatByBreed(selectedBreedId)
     .then(cat => {
-
       const image = document.createElement("img");
       image.src = cat.url;
 
@@ -73,12 +64,12 @@ breedSelect.addEventListener("change", () => {
       catInfo.appendChild(catDescription);
       catInfo.appendChild(catTemperament);
 
-      toggleLoader(false);
+      toggleElement(loader, false);
     })
     .catch(error => {
-
-      showError(error.message);
-
-      toggleLoader(false);
+      showError("Oops! Something went wrong! Try reloading the page!");
+      toggleElement(loader, false);
     });
 });
+
+initializePage();
